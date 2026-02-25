@@ -1,0 +1,20 @@
+model Bookings {
+  id        String @id @default(uuid())
+  studentId String
+  student   User   @relation("StudentBoookings", fields: [studentId], references: [id])
+
+  tutorId String
+  tutor   TutorProfiles @relation("TutorBookings", fields: [tutorId], references: [id])
+
+  status BookingStatus @default(CONFIRMED)
+
+  reviews Review[]
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
