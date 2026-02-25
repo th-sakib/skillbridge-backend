@@ -1,7 +1,11 @@
 import { toNodeHandler } from "better-auth/node";
 import e, { Application, Request, Response } from "express";
-import { auth } from "./lib/auth";
+import { auth as betterAuth } from "./lib/auth";
 import cors from "cors";
+import auth from "./middleware/auth";
+import globalErrorHandler from "./utils/globalErrorHandler";
+
+import { userRouter } from "./modules/user/user.route";
 
 const app: Application = e();
 
@@ -13,10 +17,14 @@ app.use(
   }),
 );
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(betterAuth));
 
-app.get("/", (req: Request, res: Response) => {
+app.use("/api/v1/user/", userRouter);
+
+app.get("/", auth(), (req: Request, res: Response) => {
   res.send("Yes the server is connected.");
 });
+
+app.use(globalErrorHandler);
 
 export default app;

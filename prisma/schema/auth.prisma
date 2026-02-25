@@ -10,17 +10,18 @@ enum userStatus {
 }
 
 model User {
-  id            String     @id
+  id            String    @id
   name          String
   email         String
-  emailVerified Boolean    @default(false)
+  emailVerified Boolean   @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
-  role          Role       @default(STUDENT)
-  status        userStatus @default(ACTIVE)
+  // role          Role       @default(STUDENT)
+  role          String?   @default("STUDENT")
+  status        String?   @default("ACTIVE")
 
   // relations
   // made by us
