@@ -58,7 +58,7 @@ const auth = (...roles: UserRole[]) => {
       role: session.user.role,
     };
 
-    if (roles.length && roles.includes(req.user.role as UserRole)) {
+    if (roles.length && !roles.includes(req.user.role as UserRole)) {
       return res.status(403).json({
         success: false,
         message: "access denied. You don't have proper permission.",

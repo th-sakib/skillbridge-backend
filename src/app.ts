@@ -6,6 +6,7 @@ import auth from "./middleware/auth";
 import globalErrorHandler from "./utils/globalErrorHandler";
 
 import { userRouter } from "./modules/user/user.route";
+import { categoryRouter } from "./modules/category/category.route";
 
 const app: Application = e();
 
@@ -20,8 +21,9 @@ app.use(
 app.all("/api/auth/*splat", toNodeHandler(betterAuth));
 
 app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/category/", categoryRouter);
 
-app.get("/", auth(), (req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
   res.send("Yes the server is connected.");
 });
 
