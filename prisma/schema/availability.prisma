@@ -1,0 +1,25 @@
+model Availability {
+  id          String    @id @default(uuid())
+  tutorId     String
+  day         DayOfWeek
+  startMinute Int
+  endMinute   Int
+
+  tutor TutorProfiles @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tutorId])
+  @@index([day])
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

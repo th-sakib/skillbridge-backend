@@ -25,8 +25,8 @@ model User {
 
   // relations
   // made by us
-  tutorProfiles TutorProfiles[]
-  bookings      Bookings[]      @relation("StudentBoookings")
+  tutorProfiles TutorProfiles?
+  bookings      Bookings[]     @relation("StudentBoookings")
   reviews       Review[]
 
   @@unique([email])
@@ -94,8 +94,9 @@ model TutorProfiles {
 
   categories Category[]
 
-  availability Json // provide structure {dayOfWeek, startTime, endTime, isAvailable}
-  bookings     Bookings[] @relation("TutorBookings")
+  // availability Json // provide structure {dayOfWeek, startTime, endTime, isAvailable}
+  availability Availability[]
+  bookings     Bookings[]     @relation("TutorBookings")
   reviews      Review[]
 
   @@map("tutorProfile")
