@@ -8,6 +8,17 @@ const createCategory = async (name: string) => {
   return res;
 };
 
+const getCategory = async (categoryId: string) => {
+  const res = await prisma.category.findMany({
+    where: {
+      id: categoryId,
+    },
+  });
+
+  return res;
+};
+
 export const categoryService = {
   createCategory,
+  getCategory,
 };

@@ -4,8 +4,12 @@ import auth, { UserRole } from "../../middleware/auth";
 
 const router: Router = e.Router();
 
-router.post("/tutor", userController.createTutor);
+router.post(
+  "/create-tutor/:userId",
+  auth(UserRole.tutor),
+  userController.createTutor,
+);
 
-router.get("/tutors", auth(UserRole.tutor), userController.getTutors);
+router.get("/tutors", auth(UserRole.student), userController.getTutors);
 
 export const userRouter = router;

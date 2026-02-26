@@ -55,7 +55,7 @@ const auth = (...roles: UserRole[]) => {
       email: session.user.email,
       name: session.user.name,
       emailVerified: session.user.emailVerified,
-      role: session.user.role,
+      role: session.user.role.trim(),
     };
 
     if (roles.length && !roles.includes(req.user.role as UserRole)) {

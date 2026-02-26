@@ -20,6 +20,7 @@ const getTutors = async (req: Request, res: Response, next: NextFunction) => {
 
 const createTutor = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log(req.user);
     if (!req.user) {
       throw new Error("Login before performing this task");
     }
@@ -27,16 +28,16 @@ const createTutor = async (req: Request, res: Response, next: NextFunction) => {
       throw new Error("You don't have permission to access the resouce.");
     }
 
-    const { id: userID } = req.params;
+    const { userId } = req.params;
 
-    if (!userID) {
+    if (!userId) {
       return res.status(404).json({
         success: false,
         message: "user ID not found.",
       });
     }
 
-    const result = await userService.createTutor(userID as string, req.body);
+    const result = await userService.createTutor(userId as string, req.body);
 
     sendResponse(res, {
       statusCode: 200,

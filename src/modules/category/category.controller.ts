@@ -18,8 +18,25 @@ const createCategory = async (
 
     sendResponse(res, {
       statusCode: 201,
-      success: false,
+      success: true,
       message: "category created successfully.",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getCategory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: categoryId } = req.params;
+
+    const result = await categoryService.getCategory(categoryId as string);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "category retrieved successfully.",
       data: result,
     });
   } catch (err) {
@@ -29,4 +46,5 @@ const createCategory = async (
 
 export const categoryController = {
   createCategory,
+  getCategory,
 };
