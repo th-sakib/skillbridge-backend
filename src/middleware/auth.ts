@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { auth as betterAuth } from "../lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
+import { userStatus } from "../../generated/prisma/enums";
 
 export enum UserRole {
   admin = "ADMIN",
@@ -29,14 +30,21 @@ const auth = (...roles: UserRole[]) => {
     });
 
     if (!session) {
-      return res.send(401).json({
+      return res.status(401).json({
         success: false,
-        message: "You're unauthenticated.",
+        message: "You're not authenticated.",
+      });
+    }
+
+    if (session.user.status === userStatus.BANNED) {
+      return res.status(400).json({
+        success: false,
+        message: "You are banned.",
       });
     }
 
     if (!session?.user.emailVerified) {
-      return res.send(403).json({
+      return res.status(403).json({
         success: false,
         message: "Email is not verified",
       });

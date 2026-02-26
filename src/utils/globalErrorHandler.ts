@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { Prisma } from "../../generated/prisma/client";
 
-function globalErrorHandler(err: any, res: Response) {
+function globalErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  console.log("errrorousdlfjalsd", err);
   let statusCode = 500;
   let errorMessage = "Internal Server Error";
   let errorDetails = err;
@@ -10,6 +16,10 @@ function globalErrorHandler(err: any, res: Response) {
   if (err instanceof Prisma.PrismaClientValidationError) {
     statusCode = 400;
     errorMessage = "You provide incorrect field type or missing fields!";
+  }
+  if (err.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") {
+    statusCode = 400;
+    errorMessage = "User already exists. try different email";
   }
   // PrismaClientKnownRequestError
   else if (err instanceof Prisma.PrismaClientKnownRequestError) {

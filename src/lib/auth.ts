@@ -1,8 +1,9 @@
-import { betterAuth, createLogger } from "better-auth";
+import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import nodemailer from "nodemailer";
 import { env } from "../config";
+import { createAuthMiddleware } from "better-auth/api";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -30,12 +31,31 @@ export const auth = betterAuth({
       role: {
         type: "string",
         defaultValue: "STUDENT",
+        input: true,
       },
       status: {
         type: "string",
         defaultValue: "ACTIVE",
       },
     },
+  },
+
+  // using hooks to validate the role
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-up/email") {
+        const { role, adminKey } = ctx.body;
+
+        if (adminKey === env.SECRET_KEY) {
+          ctx.body.role = "ADMIN";
+          return;
+        }
+
+        if (role.trim() !== "TUTOR" && role.trim() !== "STUDENT") {
+          throw new Error("Invalid Role");
+        }
+      }
+    }),
   },
 
   emailVerification: {
@@ -125,7 +145,6 @@ export const auth = betterAuth({
           </html>
         `,
         });
-        console.log("INfo", info);
       } catch (err) {
         console.error(err);
       }
