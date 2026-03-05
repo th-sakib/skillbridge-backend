@@ -84,13 +84,14 @@ model Verification {
 model TutorProfiles {
   id     String @id @default(uuid())
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   bio        String? @db.Text
   hourlyRate Int
   experience Int?
 
-  averageRating Float @default(0)
+  averageRating Float   @default(0)
+  isFeatured    Boolean @default(false)
 
   categories Category[]
 

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Prisma } from "../../generated/prisma/client";
+import { ApiError } from "./ApiError";
 
 function globalErrorHandler(
   err: any,
@@ -10,6 +11,12 @@ function globalErrorHandler(
   let statusCode = 500;
   let errorMessage = "Internal Server Error";
   let errorDetails = err;
+
+  if (err instanceof ApiError) {
+    statusCode = err.statusCode;
+    errorMessage = err.message;
+    errorDetails = null;
+  }
 
   // PrismaClientValidationError
   if (err instanceof Prisma.PrismaClientValidationError) {
