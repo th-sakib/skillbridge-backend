@@ -4,6 +4,8 @@ import sendResponse from "../../utils/ApiResponse";
 import { UserRole } from "../../middleware/auth";
 import { TFilter } from "../../types/filter.type";
 import { ApiError } from "../../utils/ApiError";
+import { timeToMinute } from "../../utils/timeConvertion";
+import { DayOfWeek } from "../../../generated/prisma/enums";
 
 const parseSafeNumber = (val: string): number | undefined => {
   const parsed = Number(val);
@@ -186,7 +188,23 @@ const createAvailability = async (
 
     const tutorId = req.user.id;
 
-    const result = await userService.createAvailability(tutorId);
+    const { day, startMinute, endMinute } = req.body;
+
+    const start = timeToMinute(startMinute);
+    const end = timeToMinute(endMinute);
+    const dayOfWeek: DayOfWeek = day.toUpperCase();
+
+    // checking if time conflits each other
+    if (start > end) {
+      throw new ApiError("Start time can't be more than end time", 400);
+    }
+
+    const result = await userService.createAvailability(
+      tutorId,
+      dayOfWeek,
+      start,
+      end,
+    );
 
     sendResponse(res, {
       success: true,
@@ -195,6 +213,7 @@ const createAvailability = async (
       data: result,
     });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };

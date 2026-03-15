@@ -23,7 +23,7 @@ router.get("/tutor/:userId", userController.getTutorById);
 
 // tutor availability
 router.post(
-  "/availability",
+  "/tutor/availability",
   auth(UserRole.tutor),
   userController.createAvailability,
 );

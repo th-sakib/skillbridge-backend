@@ -5,7 +5,7 @@ model Availability {
   startMinute Int
   endMinute   Int
 
-  tutor TutorProfiles @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutor User @relation(fields: [tutorId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

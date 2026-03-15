@@ -1,5 +1,9 @@
 import { create } from "node:domain";
-import { Category, TutorProfiles } from "../../../generated/prisma/client";
+import {
+  Category,
+  DayOfWeek,
+  TutorProfiles,
+} from "../../../generated/prisma/client";
 import {
   TutorProfilesWhereInput,
   UserWhereInput,
@@ -171,7 +175,38 @@ const getUserById = async (userId: string) => {
   return res;
 };
 
-const createAvailability = async (payload: any) => {};
+const createAvailability = async (
+  tutorId: string,
+  dayOfWeek: DayOfWeek,
+  start: number,
+  end: number,
+) => {
+  const overlap = await prisma.availability.findFirst({
+    where: {
+      tutorId,
+      day: dayOfWeek,
+      OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
+    },
+  });
+
+  if (overlap) {
+    throw new ApiError(
+      "Your provided time conflicts with existing time slot.",
+      400,
+    );
+  }
+
+  const result = await prisma.availability.create({
+    data: {
+      tutorId,
+      day: dayOfWeek,
+      startMinute: start,
+      endMinute: end,
+    },
+  });
+
+  return result;
+};
 
 export const userService = {
   getTutors,
