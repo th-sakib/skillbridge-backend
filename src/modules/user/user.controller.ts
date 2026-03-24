@@ -213,7 +213,95 @@ const createAvailability = async (
       data: result,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    next(error);
+  }
+};
+
+const deleteAvailability = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { availabilityId } = req.params;
+
+    const result = await userService.deleteAvailability(
+      availabilityId as string,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Availability deleted successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+const getAvailability = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = await userService.getAvailability();
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Availability successfully retrieved.",
+      data: result,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+const updateAvailability = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.user) {
+      throw new ApiError("You have to be authenticated", 401);
+    }
+
+    const tutorId = req.user.id;
+
+    const { availabilityId } = req.params;
+
+    const { day, startMinute, endMinute } = req.body;
+
+    const start = timeToMinute(startMinute);
+    const end = timeToMinute(endMinute);
+    const dayOfWeek: DayOfWeek = day.toUpperCase();
+
+    // checking if time conflits each other
+    if (start > end) {
+      throw new ApiError("Start time can't be more than end time", 400);
+    }
+
+    const result = await userService.updateAvailability(
+      tutorId,
+      availabilityId as string,
+      dayOfWeek,
+      start,
+      end,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Availability updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
     next(error);
   }
 };
@@ -224,5 +312,8 @@ export const userController = {
   getUserById,
   getTutorById,
   updateTutorProfile,
+  deleteAvailability,
   createAvailability,
+  getAvailability,
+  updateAvailability,
 };

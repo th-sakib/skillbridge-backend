@@ -181,28 +181,83 @@ const createAvailability = async (
   start: number,
   end: number,
 ) => {
-  const overlap = await prisma.availability.findFirst({
-    where: {
-      tutorId,
-      day: dayOfWeek,
-      OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const overlap = await prisma.availability.findFirst({
+      where: {
+        tutorId,
+        day: dayOfWeek,
+        OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
+      },
+    });
+
+    if (overlap) {
+      throw new ApiError(
+        "Your provided time conflicts with existing time slot.",
+        400,
+      );
+    }
+
+    return await prisma.availability.create({
+      data: {
+        tutorId,
+        day: dayOfWeek,
+        startMinute: start,
+        endMinute: end,
+      },
+    });
   });
 
-  if (overlap) {
-    throw new ApiError(
-      "Your provided time conflicts with existing time slot.",
-      400,
-    );
-  }
+  return result;
+};
 
-  const result = await prisma.availability.create({
-    data: {
-      tutorId,
-      day: dayOfWeek,
-      startMinute: start,
-      endMinute: end,
+const deleteAvailability = async (availabilityId: string) => {
+  const result = await prisma.availability.delete({
+    where: {
+      id: availabilityId,
     },
+  });
+  return result;
+};
+
+const getAvailability = async () => {
+  const result = await prisma.availability.findMany();
+
+  return result;
+};
+
+const updateAvailability = async (
+  tutorId: string,
+  availabilityId: string,
+  dayOfWeek: DayOfWeek,
+  start: number,
+  end: number,
+) => {
+  const result = await prisma.$transaction(async (tx) => {
+    const overlap = await tx.availability.findFirst({
+      where: {
+        tutorId,
+        day: dayOfWeek,
+        OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
+      },
+    });
+
+    if (overlap) {
+      throw new ApiError(
+        "Your provided time conflicts with existing time slot.",
+        400,
+      );
+    }
+
+    return await prisma.availability.update({
+      where: {
+        id: availabilityId,
+      },
+      data: {
+        day: dayOfWeek,
+        startMinute: start,
+        endMinute: end,
+      },
+    });
   });
 
   return result;
@@ -215,4 +270,7 @@ export const userService = {
   getTutorById,
   updateTutorProfile,
   createAvailability,
+  deleteAvailability,
+  getAvailability,
+  updateAvailability,
 };

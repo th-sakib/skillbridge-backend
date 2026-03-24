@@ -17,15 +17,32 @@ router.patch(
 
 router.get("/tutors", userController.getTutors);
 
-// get user and tutor by id
-router.get("/:userId", userController.getUserById);
-router.get("/tutor/:userId", userController.getTutorById);
+// ======== tutor availability ============
+router.get(
+  "/tutor/availability",
+  auth(UserRole.tutor),
+  userController.getAvailability,
+);
 
-// tutor availability
 router.post(
   "/tutor/availability",
   auth(UserRole.tutor),
   userController.createAvailability,
 );
+router.delete(
+  "/tutor/availability/:availabilityId",
+  auth(UserRole.tutor),
+  userController.deleteAvailability,
+);
+
+router.patch(
+  "/tutor/availability/:availabilityId",
+  auth(UserRole.tutor),
+  userController.updateAvailability,
+);
+
+// get user and tutor by id
+router.get("/:userId", userController.getUserById);
+router.get("/tutor/:userId", userController.getTutorById);
 
 export const userRouter = router;
