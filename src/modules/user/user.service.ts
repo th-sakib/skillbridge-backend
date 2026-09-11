@@ -1,17 +1,16 @@
-import { create } from "node:domain";
-import {
-  Category,
-  DayOfWeek,
-  TutorProfiles,
-} from "../../../generated/prisma/client";
+import { statusCodes, User } from "better-auth";
+import { DayOfWeek, TutorProfiles } from "../../../generated/prisma/client";
 import {
   TutorProfilesWhereInput,
   UserWhereInput,
 } from "../../../generated/prisma/models";
+import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import { UserRole } from "../../middleware/auth";
 import { TFilter } from "../../types/filter.type";
 import { ApiError } from "../../utils/ApiError";
+import { changePassword } from "better-auth/api";
+import { Request } from "express";
 
 const getTutors = async (filters: TFilter) => {
   const { skip, limit, searchTerm, category, maxPrice, minPrice, minRating } =
@@ -182,9 +181,21 @@ const createAvailability = async (
   end: number,
 ) => {
   const result = await prisma.$transaction(async (tx) => {
+    // retrive tutorProfileId
+
+    const tutorProfile = await tx.tutorProfiles.findFirst({
+      where: {
+        userId: tutorId,
+      },
+    });
+
+    if (!tutorProfile) {
+      throw new ApiError("TutorProfile not found", 404);
+    }
+
     const overlap = await prisma.availability.findFirst({
       where: {
-        tutorId,
+        tutorProfileId: tutorProfile.id,
         day: dayOfWeek,
         OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
       },
@@ -199,7 +210,7 @@ const createAvailability = async (
 
     return await prisma.availability.create({
       data: {
-        tutorId,
+        tutorProfileId: tutorProfile.id,
         day: dayOfWeek,
         startMinute: start,
         endMinute: end,
@@ -233,9 +244,18 @@ const updateAvailability = async (
   end: number,
 ) => {
   const result = await prisma.$transaction(async (tx) => {
+    const tutorProfile = await tx.tutorProfiles.findUnique({
+      where: {
+        id: tutorId,
+      },
+    });
+    if (!tutorProfile) {
+      throw new ApiError("TutorProfile not found", 404);
+    }
+
     const overlap = await tx.availability.findFirst({
       where: {
-        tutorId,
+        tutorProfileId: tutorProfile.id,
         day: dayOfWeek,
         OR: [{ startMinute: { lt: end }, endMinute: { gt: start } }],
       },
@@ -263,6 +283,68 @@ const updateAvailability = async (
   return result;
 };
 
+// profile management
+const getProfile = async (userId: string) => {
+  const result = await prisma.user.findMany({
+    where: {
+      id: userId,
+    },
+    include: {
+      tutorProfiles: {
+        include: {
+          availabilities: true,
+        },
+      },
+      bookings: true,
+    },
+  });
+
+  return result;
+};
+
+const updateProfile = async (userId: string, payload: User) => {
+  const result = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      name: payload.name,
+      image: payload.image,
+    },
+  });
+
+  return result;
+};
+
+const updateEmail = async (userId: string, email: string) => {
+  // TODO: enable change email functionality within better auth
+};
+
+const updatePass = async (
+  req: Request,
+  newPassword: string,
+  currentPassword: string,
+) => {
+  const headers = new Headers();
+
+  Object.entries(req.headers).forEach(([key, value]) => {
+    if (typeof value === "string") {
+      headers.append(key, value);
+    }
+  });
+
+  const result = await auth.api.changePassword({
+    body: {
+      newPassword,
+      currentPassword,
+      revokeOtherSessions: true,
+    },
+    headers,
+  });
+
+  return result;
+};
+
 export const userService = {
   getTutors,
   createTutor,
@@ -273,4 +355,9 @@ export const userService = {
   deleteAvailability,
   getAvailability,
   updateAvailability,
+
+  getProfile,
+  updateProfile,
+  updateEmail,
+  updatePass,
 };

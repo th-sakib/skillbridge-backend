@@ -7,8 +7,8 @@ const main = async () => {
     await prisma.$connect();
     console.log("Database is connected!");
 
-    app.listen(env.PORT, () => {
-      console.log(`Server is running at port: ${env.PORT}`);
+    app.listen(env.data.PORT, () => {
+      console.log(`Server is running at port: ${env.data.PORT}`);
     });
   } catch (err) {
     console.error("Something went wrong", err);

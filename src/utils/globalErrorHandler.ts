@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Prisma } from "../../generated/prisma/client";
 import { ApiError } from "./ApiError";
+import { env } from "../config";
 
 function globalErrorHandler(
   err: any,
@@ -11,11 +12,13 @@ function globalErrorHandler(
   let statusCode = 500;
   let errorMessage = "Internal Server Error";
   let errorDetails = err;
+  let stack: string | undefined;
 
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     errorMessage = err.message;
     errorDetails = null;
+    stack = err.stack;
   }
 
   // PrismaClientValidationError
@@ -56,7 +59,8 @@ function globalErrorHandler(
   res.status(statusCode).json({
     success: false,
     message: errorMessage,
-    error: errorDetails,
+    error: env.data.NODE_ENV === "development" ? errorDetails : undefined,
+    stack: env.data.NODE_ENV === "development" ? stack : undefined,
   });
 }
 

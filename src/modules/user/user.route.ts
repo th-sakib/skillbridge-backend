@@ -5,14 +5,38 @@ import auth, { UserRole } from "../../middleware/auth";
 const router: Router = e.Router();
 
 router.post(
-  "/create-tutor/:userId",
+  "/create-tutor",
   auth(UserRole.tutor),
-  userController.createTutor,
+  userController.createTutorProfile,
 );
 router.patch(
   "/update-tutor/:profileId",
   auth(UserRole.tutor),
   userController.updateTutorProfile,
+);
+// profile management
+router.get(
+  "/me",
+  auth(UserRole.admin, UserRole.student, UserRole.tutor),
+  userController.getProfile,
+);
+router.patch(
+  "/profile",
+  auth(UserRole.student, UserRole.tutor, UserRole.admin),
+  userController.updateProfile,
+);
+
+router.patch(
+  "/email",
+  auth(UserRole.student, UserRole.tutor, UserRole.admin),
+  userController.updateEmail,
+  // TODO: enable change email functionality within better auth
+);
+router.post(
+  "/password",
+  auth(UserRole.student, UserRole.tutor, UserRole.admin),
+  userController.updatePass,
+  // TODO: enable change email functionality within better auth
 );
 
 router.get("/tutors", userController.getTutors);

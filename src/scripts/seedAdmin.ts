@@ -11,7 +11,7 @@ import { auth } from "../lib/auth";
       email: "admin@admin.com",
       role: UserRole.student,
       password: "AdminIsHereToControlYou91",
-      adminKey: env.SECRET_KEY,
+      adminKey: env.data.SECRET_KEY,
     };
     console.log("***** Checking Admin Exist or not");
     // check user exist on db or not

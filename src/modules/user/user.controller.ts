@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import { userService } from "./user.service";
 import sendResponse from "../../utils/ApiResponse";
 import { UserRole } from "../../middleware/auth";
@@ -49,19 +49,23 @@ const getTutors = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const createTutor = async (req: Request, res: Response, next: NextFunction) => {
+const createTutorProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     if (!req.user) {
       throw new ApiError("Login before performing this task", 401);
     }
-    if (req.user.role !== UserRole.tutor) {
-      throw new ApiError(
-        "You don't have permission to access the resouce.",
-        403,
-      );
-    }
+    // if (req.user.role !== UserRole.tutor) {
+    //   throw new ApiError(
+    //     "You don't have permission to access the resouce.",
+    //     403,
+    //   );
+    // }
 
-    const { userId } = req.params;
+    const userId = req.user.id;
 
     if (!userId) {
       throw new ApiError("User Id not found", 404);
@@ -107,12 +111,6 @@ const updateTutorProfile = async (
     if (!profileId) {
       throw new ApiError("Profile Id not found", 404);
     }
-    // if (req.user.id !== profileId) {
-    //   throw new ApiError(
-    //     "You don't have permission to modify this profile",
-    //     403,
-    //   );
-    // }
 
     const result = await userService.updateTutorProfile(
       profileId as string,
@@ -306,9 +304,121 @@ const updateAvailability = async (
   }
 };
 
+const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new ApiError("Login before performing this task", 401);
+    }
+
+    const userId = req.user.id;
+
+    const result = await userService.getProfile(userId);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Successfully retrieved profile info.",
+      data: result,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+const updateProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.user) {
+      throw new ApiError("Login before performing this task", 401);
+    }
+
+    const userId = req.user.id;
+
+    if (!userId) {
+      throw new ApiError("User not found", 404);
+    }
+
+    const result = await userService.updateProfile(userId as string, req.body);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile updated successfully",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new ApiError("Login before performing this task", 401);
+    }
+
+    const userId = req.user.id;
+    const { email } = req.body;
+
+    if (!email) {
+      throw new ApiError("Email field is required", 400);
+    }
+
+    if (!userId) {
+      throw new ApiError("User not found", 404);
+    }
+
+    // TODO: enable change email functionality within better auth
+    const result = await userService.updateEmail(userId, email);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Email updated successfully",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updatePass = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new ApiError("Login before performing this task", 401);
+    }
+
+    const userId = req.user.id;
+    const { newPassword, currentPassword } = req.body;
+
+    if (!newPassword || !currentPassword) {
+      throw new ApiError("Required field missing", 400);
+    }
+
+    // TODO: enable change email functionality within better auth
+    const result = await userService.updatePass(
+      req,
+      newPassword,
+      currentPassword,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Password updated successfully",
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 export const userController = {
   getTutors,
-  createTutor,
+  createTutorProfile,
   getUserById,
   getTutorById,
   updateTutorProfile,
@@ -316,4 +426,9 @@ export const userController = {
   createAvailability,
   getAvailability,
   updateAvailability,
+
+  getProfile,
+  updateProfile,
+  updateEmail,
+  updatePass,
 };

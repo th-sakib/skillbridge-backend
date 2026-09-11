@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, boolean } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import nodemailer from "nodemailer";
@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
   port: 587, // 465: for SSL
   secure: false, // Use true for port 465, false for port 587
   auth: {
-    user: env.GAPP_USER,
-    pass: env.GAPP_PASS,
+    user: env.data.GAPP_USER,
+    pass: env.data.GAPP_PASS,
   },
 });
 
@@ -37,6 +37,10 @@ export const auth = betterAuth({
         type: "string",
         defaultValue: "ACTIVE",
       },
+      isDeleted: {
+        type: "boolean",
+        defaultValue: false,
+      },
     },
   },
 
@@ -46,7 +50,7 @@ export const auth = betterAuth({
       if (ctx.path === "/sign-up/email") {
         const { role, adminKey } = ctx.body;
 
-        if (adminKey === env.SECRET_KEY) {
+        if (adminKey === env.data.SECRET_KEY) {
           ctx.body.role = "ADMIN";
           return;
         }
